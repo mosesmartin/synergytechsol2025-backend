@@ -6,16 +6,18 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Gmail SMTP Transporter
+// Hostinger SMTP Transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.hostinger.com',
+  port: 465,        // SSL port
+  secure: true,     // True for SSL
   auth: {
-    user: 'moses4martin@gmail.com',      // Your Gmail
-    pass: 'lxxlmisgqbncbaoa'             // App Password
+    user: 'mosesmartin@synergytechsol.com',
+    pass: 'Johov@H4929@#'  // Use actual email password or generated app password
   }
 });
 
-// Verify SMTP Connection
+// Verify SMTP connection
 transporter.verify((error, success) => {
   if (error) {
     console.error('SMTP Connection Failed:', error);
@@ -24,46 +26,39 @@ transporter.verify((error, success) => {
   }
 });
 
-// Home Route
+// Routes
 app.get('/', (req, res) => {
-  res.send('Inquiry Service is Running...');
+  res.send('Email Service is Running...');
 });
 
-// Inquiry Form Submission Route
-app.post('/api/send-email', async (req, res) => {
+app.post('/api/send-email', (req, res) => {
   const { name, email, phone, message } = req.body;
-
-  if (!name || !email || !phone || !message) {
-    return res.status(400).json({ success: false, message: 'All fields are required' });
-  }
+  console.log('Received Payload:', req.body);
 
   const mailOptions = {
-    from: '"Synergy Tech Inquiry" <moses4martin@gmail.com>',   // Must be your verified Gmail
-    to: 'mosesmartin@synergytechsol.com',                      // Your business email
-    subject: 'New Inquiry from Website',
-    replyTo: email,                                            // So you can reply directly to sender
-    html: `
-      <h3>New Inquiry Received</h3>
-      <ul>
-        <li><strong>Name:</strong> ${name}</li>
-        <li><strong>Email:</strong> ${email}</li>
-        <li><strong>Phone:</strong> ${phone}</li>
-      </ul>
-      <p><strong>Message:</strong><br/> ${message}</p>
+    from: `"${name}" <mosesmartin@synergytechsol.com>`,
+    to: 'mosesmartin@synergytechsol.com',
+    subject: 'New Inquiry from Website Contact Form',
+    text: `
+      Name: ${name}
+      Email: ${email}
+      Phone: ${phone}
+      Message: ${message}
     `
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully');
-    res.status(200).json({ success: true, message: 'Inquiry submitted successfully' });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ success: false, message: 'Failed to send inquiry', error: error.message });
-  }
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending email:', error);
+      return res.status(500).json({ success: false, message: 'Error sending email', error: error.message });
+    } else {
+      console.log('Email sent:', info.response);
+      return res.status(200).json({ success: true, message: 'Email sent successfully' });
+    }
+  });
 });
 
 // Start Server
 app.listen(3000, () => {
-  console.log('Server listening on port 3000');
+  console.log('Server running on port 3000');
 });
