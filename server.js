@@ -6,12 +6,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Gmail Transporter
+// Gmail SMTP Transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'moses4martin@gmail.com',
-    pass: 'lxxlmisgqbncbaoa'  // App Password here
+    user: 'moses4martin@gmail.com',      // Your Gmail
+    pass: 'lxxlmisgqbncbaoa'             // App Password
   }
 });
 
@@ -24,31 +24,43 @@ transporter.verify((error, success) => {
   }
 });
 
-// Routes
+// Home Route
 app.get('/', (req, res) => {
-  res.send('App is running...');
+  res.send('Inquiry Service is Running...');
 });
 
-app.post('/api/send-email', (req, res) => {
+// Inquiry Form Submission Route
+app.post('/api/send-email', async (req, res) => {
   const { name, email, phone, message } = req.body;
-  console.log('Received Payload:', req.body);
+
+  if (!name || !email || !phone || !message) {
+    return res.status(400).json({ success: false, message: 'All fields are required' });
+  }
 
   const mailOptions = {
-    from: '"Synergy Tech Sol" <moses4martin@gmail.com>',
-    to: 'moses4martin@gmail.com',
-    subject: 'Synergy Tech Sol - New Contact Form Submission',
-    text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}`
+    from: '"Synergy Tech Inquiry" <moses4martin@gmail.com>',   // Must be your verified Gmail
+    to: 'mosesmartin@synergytechsol.com',                      // Your business email
+    subject: 'New Inquiry from Website',
+    replyTo: email,                                            // So you can reply directly to sender
+    html: `
+      <h3>New Inquiry Received</h3>
+      <ul>
+        <li><strong>Name:</strong> ${name}</li>
+        <li><strong>Email:</strong> ${email}</li>
+        <li><strong>Phone:</strong> ${phone}</li>
+      </ul>
+      <p><strong>Message:</strong><br/> ${message}</p>
+    `
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error sending email:', error);
-      return res.status(500).json({ success: false, message: 'Error sending email', error: error.message });
-    } else {
-      console.log('Email sent:', info.response);
-      return res.status(200).json({ success: true, message: 'Email sent successfully', response: info.response });
-    }
-  });
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
+    res.status(200).json({ success: true, message: 'Inquiry submitted successfully' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ success: false, message: 'Failed to send inquiry', error: error.message });
+  }
 });
 
 // Start Server
