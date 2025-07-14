@@ -6,18 +6,16 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Create transporter globally
+// Gmail Transporter
 const transporter = nodemailer.createTransport({
-  host: 'smtp.hostinger.com',
-  port: 465,       // Use 465 for SSL or 587 for TLS
-  secure: false,   // True for SSL (465), False for TLS (587)
+  service: 'gmail',
   auth: {
-    user: 'mosesmartin@synergytechsol.com',
-    pass: 'Johov@H4929@#'
+    user: 'moses4martin@gmail.com',
+    pass: 'lxxlmisgqbncbaoa'  // App Password here
   }
 });
 
-// Verify SMTP connection on app start
+// Verify SMTP Connection
 transporter.verify((error, success) => {
   if (error) {
     console.error('SMTP Connection Failed:', error);
@@ -26,8 +24,9 @@ transporter.verify((error, success) => {
   }
 });
 
+// Routes
 app.get('/', (req, res) => {
-  res.send('App is running..');
+  res.send('App is running...');
 });
 
 app.post('/api/send-email', (req, res) => {
@@ -35,8 +34,8 @@ app.post('/api/send-email', (req, res) => {
   console.log('Received Payload:', req.body);
 
   const mailOptions = {
-    from: '"Synergy Tech Sol" <mosesmartin@synergytechsol.com>',
-    to: 'mosesmartin@synergytechsol.com',
+    from: '"Synergy Tech Sol" <moses4martin@gmail.com>',
+    to: 'moses4martin@gmail.com',
     subject: 'Synergy Tech Sol - New Contact Form Submission',
     text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nMessage: ${message}`
   };
@@ -52,6 +51,7 @@ app.post('/api/send-email', (req, res) => {
   });
 });
 
+// Start Server
 app.listen(3000, () => {
   console.log('Server listening on port 3000');
 });
